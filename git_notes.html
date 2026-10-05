@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth scroll-pt-24">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Git Developer Cheatsheet &amp; Interactive Learning Tree</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace']
+          },
+          colors: {
+            surface: {
+              50: '#14171d',
+              100: '#1a1e26',
+              200: '#222733',
+              border: '#2c3340',
+              accent: '#3b82f6',
+              highlight: '#60a5fa'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f1115;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2a313d;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3e4859;
+    }
+    .code-comment { color: #64748b; }
+    .code-cmd { color: #38bdf8; }
+    .code-arg { color: #f1f5f9; }
+    .code-flag { color: #fb923c; }
+
+    /* Tree Connector Styling */
+    .tree-connector-v {
+      width: 2px;
+      background: linear-gradient(180deg, rgba(59,130,246,0.8), rgba(99,102,241,0.5));
+    }
+    .tree-connector-h {
+      height: 2px;
+      background: linear-gradient(90deg, rgba(59,130,246,0.3), rgba(99,102,241,0.8), rgba(59,130,246,0.3));
+    }
+    .tree-node-card {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .tree-node-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px 0 rgba(59, 130, 246, 0.25);
+    }
+  </style>
+</head>
+
+<body class="bg-[#0b0d11] text-slate-200 font-sans min-h-screen selection:bg-blue-600 selection:text-white flex flex-col md:flex-row antialiased">
+
+  <!-- Sidebar Navigation -->
+  <aside class="w-full md:w-64 md:h-screen md:sticky top-0 bg-[#12151b] border-b md:border-b-0 md:border-r border-surface-border flex flex-col shrink-0 z-30">
+    <div class="p-4 border-b border-surface-border flex items-center justify-between">
+      <a href="#roadmap-tree" class="flex items-center space-x-2.5 group">
+        <div class="w-8 h-8 rounded-lg bg-blue-600 group-hover:bg-blue-500 transition-colors flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/20">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="18" cy="18" r="3"></circle>
+            <circle cx="6" cy="6" r="3"></circle>
+            <path d="M13 6h3a2 2 0 0 1 2 2v7"></path>
+            <line x1="6" y1="9" x2="6" y2="21"></line>
+          </svg>
+        </div>
+        <div class="leading-tight">
+          <div class="font-bold tracking-tight text-white group-hover:text-blue-400 transition-colors">Git <span class="text-blue-400">Sheet</span></div>
+          <div class="text-[10px] text-slate-500 font-mono">Modern Dev Guide</div>
+        </div>
+      </a>
+      <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-surface-200 text-slate-400 border border-surface-border">v2.5</span>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="p-3 space-y-1 overflow-y-auto flex-1 text-xs font-medium">
+      <!-- Top Priority Roadmap Anchor -->
+      <a href="#roadmap-tree" class="sidebar-link flex items-center justify-between px-3 py-2.5 rounded-lg bg-blue-950/40 text-blue-300 border border-blue-800/40 hover:bg-blue-900/40 transition-colors mb-2 font-semibold">
+        <span class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+            <path d="M10 6.5h4M6.5 10v4M14 17.5h-4M17.5 14v-4"></path>
+          </svg>
+          Learning Tree
+        </span>
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      </a>
+
+      <div class="text-[10px] uppercase tracking-wider font-mono text-slate-500 px-3 pt-2 pb-1 font-bold">Cheatsheet Sections</div>
+
+      <a href="#installation" class="sidebar-link flex items-center px-3 py-1.5 rounded-md hover:bg-surface-100 text-slate-300 hover:text-white transition-colors">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2.5 shrink-0"></span>01. Install &amp; OS
+      </a>
+      <a href="#setup" class="sidebar-link flex items-center px-3 py-1.5 rounded-md hover:bg-surface-100 text-slate-300 hover:text-white transition-colors">
+        <span class="w-2 h-2 rounded-full bg-blue-400 mr-2.5 shrink-0"></span>02. Identity &amp; Config
+      </a>
+      <a href="#auth" class="sidebar-link flex items-center px-3 py-1.5 rounded-md hover:bg-surface-100 text-slate-300 hover:text-white transition-colors">
+        <span class="w-2 h-2 rounded-full bg-purple-400 mr-2.5 shrink-0"></span>03. Remote Server Auth
+      </a>
+      <a href="#repo-start" class="sidebar-link flex items-center px-3 py-1.5 rounded-md hover:bg-surface-100 text-slate-300 hover:text-white transition-colors">
+        <span class="w-2 h-2 rounded-full bg-cyan-400 mr-2.5 shrink-0"></span>04. Init, Clone &amp; Ignore
+      </a>
+      <a href="#daily-loop" class="sidebar-link flex items-center px-3 py-1.5 rounded-md hover:bg-surface-100 text-slate-300 hover:text-white transition-colors">
+        <span class="w-2 h-2 rounded-full bg-amber-400 mr-2.5 shrink-0"></span>05. Daily Core Loop
+      </a>
+      <a href="#branching" class="sidebar-link flex items-center px-3 py-1.5 rounded-md hover:bg-surface-100 text-slate-300 hover:text-white transition-colors">
+        <span class="w-2 h-2 rounded-full bg-indigo-400 mr-2.5 shrink-0"></span>06. Branching &amp; Switch
+      </a>
+      <a href="#forks-remotes" class="sidebar-link flex items-center px-3 py-1.5 rounded-md hover:bg-surface-100 text-slate-300 hover:text-white transition-colors">
+        <span class="w-2 h-2 rounded-full bg-pink-400 mr-2.5 shrink-0"></span>07. Forks &amp; Upstream
+      </a>
+      <a href="#rebase-merge" class="sidebar-link flex items-center px-3 py-1.5 rounded-md hover:bg-surface-100 text-slate-300 hover:text-white transition-colors">
+        <span class="w-2 h-2 rounded-full bg-teal-400 mr-2.5 shrink-0"></span>08. Merge vs. Rebase
+      </a>
+      <a href="#conflicts" class="sidebar-link flex items-center px-3 py-1.5 rounded-md hover:bg-surface-100 text-slate-300 hover:text-white transition-colors">
+        <span class="w-2 h-2 rounded-full bg-red-400 mr-2.5 shrink-0"></span>09. Conflicts &amp; Exits
+      </a>
+      <a href="#time-travel" class="sidebar-link flex items-center px-3 py-1.5 rounded-md hover:bg-surface-100 text-slate-300 hover:text-white transition-colors">
+        <span class="w-2 h-2 rounded-full bg-rose-400 mr-2.5 shrink-0"></span>10. Undo, Reset &amp; Reflog
+      </a>
+      <a href="#precision-tools" class="sidebar-link flex items-center px-3 py-1.5 rounded-md hover:bg-surface-100 text-slate-300 hover:text-white transition-colors">
+        <span class="w-2 h-2 rounded-full bg-orange-400 mr-2.5 shrink-0"></span>11. Cherry-Pick &amp; Tags
+      </a>
+      <a href="#stashing" class="sidebar-link flex items-center px-3 py-1.5 rounded-md hover:bg-surface-100 text-slate-300 hover:text-white transition-colors">
+        <span class="w-2 h-2 rounded-full bg-yellow-400 mr-2.5 shrink-0"></span>12. Temporary Stashing
+      </a>
+      <a href="#power-tools" class="sidebar-link flex items-center px-3 py-1.5 rounded-md hover:bg-surface-100 text-slate-300 hover:text-white transition-colors">
+        <span class="w-2 h-2 rounded-full bg-violet-400 mr-2.5 shrink-0"></span>13. Worktrees &amp; Modules
+      </a>
+    </nav>
+
+    <div class="p-3 border-t border-surface-border text-[11px] text-slate-500 text-center font-mono">
+      Interactive • Single File • 2026
+    </div>
+  </aside>
+
+  <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+    <!-- Top Filter Header -->
+    <header class="sticky top-0 bg-[#0b0d11]/95 backdrop-blur-md border-b border-surface-border p-4 sm:px-8 z-20 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="relative w-full sm:w-96">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </span>
+        <input 
+          id="searchInput" 
+          type="text" 
+          placeholder="Filter commands (e.g. switch, reflog, worktree, upstream)..." 
+          class="w-full bg-[#14171d] border border-surface-border rounded-lg pl-9 pr-4 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
+        >
+      </div>
+      <div class="flex items-center gap-2 text-xs font-mono text-slate-400">
+        <span class="px-2 py-0.5 rounded bg-surface-100 border border-surface-border">ESC</span> to clear search
+      </div>
+    </header>
+
+    <!-- Cards Container -->
+    <div id="contentCards" class="p-4 sm:p-8 space-y-12 max-w-5xl mx-auto w-full">
+
+      <!-- TOP INTERACTIVE GIT LEARNING TREE / ROADMAP -->
+      <section id="roadmap-tree" class="cheatsheet-section scroll-mt-24">
+        <div class="bg-gradient-to-b from-[#14171e] to-[#101217] rounded-2xl border border-surface-border p-5 sm:p-8 shadow-2xl relative overflow-hidden">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-6 border-b border-surface-border">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 text-[10px] font-mono font-bold tracking-wider rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase">Interactive Concept Tree</span>
+                <span class="text-xs text-slate-500 font-mono">Prerequisites &rarr; Mastery</span>
+              </div>
+              <h2 class="text-xl sm:text-2xl font-extrabold text-white mt-1">Git Logical Dependency Graph</h2>
+              <p class="text-xs text-slate-400 mt-1 max-w-xl">Every child node depends directly on the concepts above it. Click any node to jump straight to its runnable commands.</p>
+            </div>
+            <div class="text-[11px] font-mono text-slate-400 bg-surface-100 px-3 py-1.5 rounded-lg border border-surface-border shrink-0 self-start sm:self-auto">
+              Click node &rarr; Jump to Section
+            </div>
+          </div>
+
+          <!-- The Visual Graph Tree -->
+          <div class="mt-8 flex flex-col items-center select-none">
+
+            <!-- TIER 1: ROOT -->
+            <div class="w-full max-w-md">
+              <a href="#installation" class="tree-node-card block p-3.5 rounded-xl bg-[#181d26] border-2 border-emerald-500/50 hover:border-emerald-400 bg-gradient-to-r hover:from-emerald-950/20">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">LEVEL 1 • ROOT FOUNDATION</span>
+                  <span class="text-emerald-400 text-xs font-mono font-semibold">Step 01</span>
+                </div>
+                <div class="text-sm font-bold text-white mt-1 flex items-center gap-2">
+                  <span>💻</span> 01. System Setup &amp; Remote Auth
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Package installs, global identity, SSH keys &amp; GitHub CLI authentication</div>
+              </a>
+            </div>
+
+            <!-- Connector Line Down -->
+            <div class="w-0.5 h-7 tree-connector-v"></div>
+
+            <!-- TIER 2: REPOSITORY BASICS -->
+            <div class="w-full max-w-md">
+              <a href="#repo-start" class="tree-node-card block p-3.5 rounded-xl bg-[#181d26] border-2 border-cyan-500/50 hover:border-cyan-400 bg-gradient-to-r hover:from-cyan-950/20">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">LEVEL 2 • REPOSITORY BASICS</span>
+                  <span class="text-cyan-400 text-xs font-mono font-semibold">Step 02</span>
+                </div>
+                <div class="text-sm font-bold text-white mt-1 flex items-center gap-2">
+                  <span>📁</span> 02. Repo Creation &amp; Tracking
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Initializing <code class="font-mono text-cyan-300">git init</code>, cloning remote repos, and ignoring untracked build files</div>
+              </a>
+            </div>
+
+            <!-- Connector Line Down -->
+            <div class="w-0.5 h-7 tree-connector-v"></div>
+
+            <!-- TIER 3: DAILY CORE LOOP -->
+            <div class="w-full max-w-md">
+              <a href="#daily-loop" class="tree-node-card block p-3.5 rounded-xl bg-[#181d26] border-2 border-amber-500/50 hover:border-amber-400 bg-gradient-to-r hover:from-amber-950/20">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">LEVEL 3 • EVERYDAY ENGINE</span>
+                  <span class="text-amber-400 text-xs font-mono font-semibold">Step 03</span>
+                </div>
+                <div class="text-sm font-bold text-white mt-1 flex items-center gap-2">
+                  <span>⚡</span> 03. Daily Core Work Loop
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Staging (<code class="font-mono text-amber-300">git add</code>), snapshotting (<code class="font-mono text-amber-300">commit</code>), diff inspection &amp; amend fixes</div>
+              </a>
+            </div>
+
+            <!-- Connector Fork to Parallel Tracks -->
+            <div class="w-0.5 h-6 tree-connector-v"></div>
+            <!-- Horizontal Split Bar on desktop -->
+            <div class="hidden md:block w-3/4 max-w-xl h-0.5 tree-connector-h"></div>
+
+            <!-- TIER 4: FORKING PARALLEL PATHS (Branching vs. Collaboration) -->
+            <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 md:mt-0 pt-0 md:pt-4 relative">
+              <!-- Left Branch: Branching & Context -->
+              <div class="flex flex-col items-center">
+                <div class="hidden md:block w-0.5 h-4 tree-connector-v -mt-4 mb-2"></div>
+                <a href="#branching" class="tree-node-card w-full block p-3.5 rounded-xl bg-[#181d26] border-2 border-indigo-500/50 hover:border-indigo-400 bg-gradient-to-r hover:from-indigo-950/20">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">TRACK A • ISOLATION</span>
+                    <span class="text-indigo-400 text-xs font-mono font-semibold">Step 04-A</span>
+                  </div>
+                  <div class="text-sm font-bold text-white mt-1 flex items-center gap-2">
+                    <span>🌿</span> 04. Branching &amp; Context
+                  </div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">Feature branch switches (<code class="font-mono text-indigo-300">git switch -c</code>) and temporary stashing (<code class="font-mono text-indigo-300">stash</code>)</div>
+                </a>
+              </div>
+
+              <!-- Right Branch: Remote Collaboration -->
+              <div class="flex flex-col items-center">
+                <div class="hidden md:block w-0.5 h-4 tree-connector-v -mt-4 mb-2"></div>
+                <a href="#forks-remotes" class="tree-node-card w-full block p-3.5 rounded-xl bg-[#181d26] border-2 border-pink-500/50 hover:border-pink-400 bg-gradient-to-r hover:from-pink-950/20">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-pink-500/20 text-pink-300 border border-pink-500/30">TRACK B • COLLABORATION</span>
+                    <span class="text-pink-400 text-xs font-mono font-semibold">Step 04-B</span>
+                  </div>
+                  <div class="text-sm font-bold text-white mt-1 flex items-center gap-2">
+                    <span>🌐</span> 05. Remote Collaboration &amp; Forks
+                  </div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">Origin vs Upstream synchronization, pulling changes, and publishing branches</div>
+                </a>
+              </div>
+            </div>
+
+            <!-- Merging the tracks together -->
+            <div class="hidden md:block w-3/4 max-w-xl h-0.5 tree-connector-h mt-4"></div>
+            <div class="w-0.5 h-6 tree-connector-v"></div>
+
+            <!-- TIER 5: INTEGRATION & CONFLICTS -->
+            <div class="w-full max-w-md">
+              <a href="#rebase-merge" class="tree-node-card block p-3.5 rounded-xl bg-[#181d26] border-2 border-teal-500/50 hover:border-teal-400 bg-gradient-to-r hover:from-teal-950/20">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30">LEVEL 5 • INTEGRATION CRITICAL</span>
+                  <span class="text-teal-400 text-xs font-mono font-semibold">Step 06</span>
+                </div>
+                <div class="text-sm font-bold text-white mt-1 flex items-center gap-2">
+                  <span>🔀</span> 06. Merging, Rebasing &amp; Conflicts
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Chronological merges, linear rebases, conflict marker resolution and aborting</div>
+              </a>
+            </div>
+
+            <!-- Connector Down to Advanced Leaves -->
+            <div class="w-0.5 h-6 tree-connector-v"></div>
+            <div class="hidden md:block w-full max-w-3xl h-0.5 tree-connector-h"></div>
+
+            <!-- TIER 6: ADVANCED SPECIALIZATIONS (3 LEAVES) -->
+            <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-3.5 mt-2 md:mt-0 pt-0 md:pt-4">
+              <!-- Leaf 1: Time Travel & Undo -->
+              <div class="flex flex-col items-center">
+                <div class="hidden md:block w-0.5 h-4 tree-connector-v -mt-4 mb-2"></div>
+                <a href="#time-travel" class="tree-node-card w-full block p-3 rounded-xl bg-[#181d26] border border-rose-500/50 hover:border-rose-400 bg-gradient-to-b hover:from-rose-950/20">
+                  <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">RESCUE</span>
+                  <div class="text-xs font-bold text-white mt-1.5 flex items-center gap-1.5">
+                    <span>⏱️️</span> Time Travel &amp; Reflog
+                  </div>
+                  <div class="text-[10px] text-slate-400 mt-1 leading-snug">Undo commits, soft/hard resets, and resurrect deleted branches with reflog</div>
+                </a>
+              </div>
+
+              <!-- Leaf 2: Precision Workflow -->
+              <div class="flex flex-col items-center">
+                <div class="hidden md:block w-0.5 h-4 tree-connector-v -mt-4 mb-2"></div>
+                <a href="#precision-tools" class="tree-node-card w-full block p-3 rounded-xl bg-[#181d26] border border-orange-500/50 hover:border-orange-400 bg-gradient-to-b hover:from-orange-950/20">
+                  <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-500/30">PRECISION</span>
+                  <div class="text-xs font-bold text-white mt-1.5 flex items-center gap-1.5">
+                    <span>🍒</span> Cherry-Pick &amp; Tags
+                  </div>
+                  <div class="text-[10px] text-slate-400 mt-1 leading-snug">Port individual commits across branches and tag production release versions</div>
+                </a>
+              </div>
+
+              <!-- Leaf 3: Power Tools -->
+              <div class="flex flex-col items-center">
+                <div class="hidden md:block w-0.5 h-4 tree-connector-v -mt-4 mb-2"></div>
+                <a href="#power-tools" class="tree-node-card w-full block p-3 rounded-xl bg-[#181d26] border border-violet-500/50 hover:border-violet-400 bg-gradient-to-b hover:from-violet-950/20">
+                  <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-violet-500/20 text-violet-300 border border-violet-500/30">POWER USER</span>
+                  <div class="text-xs font-bold text-white mt-1.5 flex items-center gap-1.5">
+                    <span>🌳</span> Worktrees &amp; Submodules
+                  </div>
+                  <div class="text-[10px] text-slate-400 mt-1 leading-snug">Simultaneous checkouts without switching folders, and nested repository clones</div>
+                </a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 1. INSTALLATION -->
+      <section id="installation" class="cheatsheet-section scroll-mt-24 space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">STEP 01</span>
+            <h2 class="text-lg font-bold text-white">Installing Git</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Package installation commands tailored to your target platform.</p>
+        </div>
+
+        <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden shadow-lg shadow-black/20" data-keywords="install package manager pacman apt winget ubuntu cachyos arch windows">
+          <!-- Tabs Header -->
+          <div class="flex items-center justify-between bg-[#191d24] px-4 border-b border-surface-border">
+            <div class="flex space-x-1 tab-nav" data-tab-group="install">
+              <button class="tab-btn active px-3 py-2.5 text-xs font-medium border-b-2 border-blue-500 text-white" data-target="install-cachy">CachyOS / Arch</button>
+              <button class="tab-btn px-3 py-2.5 text-xs font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200" data-target="install-ubuntu">Ubuntu / Debian</button>
+              <button class="tab-btn px-3 py-2.5 text-xs font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200" data-target="install-win">Windows</button>
+            </div>
+          </div>
+
+          <!-- Tab Contents -->
+          <div class="tab-group-container">
+            <!-- CachyOS -->
+            <div id="install-cachy" class="tab-pane active">
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="sudo pacman -Syu git">Copy</button>
+                <div class="space-y-2">
+                  <div class="text-slate-500"># Refresh system repos and install latest git build</div>
+                  <div><span class="text-emerald-400">sudo</span> pacman -Syu git</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ubuntu -->
+            <div id="install-ubuntu" class="tab-pane hidden">
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="sudo apt update && sudo apt install -y git">Copy</button>
+                <div class="space-y-2">
+                  <div class="text-slate-500"># Standard apt repository install</div>
+                  <div><span class="text-emerald-400">sudo</span> apt update &amp;&amp; <span class="text-emerald-400">sudo</span> apt install -y git</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Windows -->
+            <div id="install-win" class="tab-pane hidden">
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="winget install --id Git.Git -e --source winget">Copy</button>
+                <div class="space-y-2">
+                  <div class="text-slate-500"># Windows Package Manager (PowerShell or Terminal)</div>
+                  <div>winget install --id Git.Git -e --source winget</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+            Verify installed version: <code class="text-slate-200 font-mono">git --version</code>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. GLOBAL SETUP -->
+      <section id="setup" class="cheatsheet-section scroll-mt-24 space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">STEP 02</span>
+            <h2 class="text-lg font-bold text-white">Identity &amp; Global Configuration</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Written directly to <code class="font-mono text-slate-300">~/.gitconfig</code>. Required before creating commits.</p>
+        </div>
+
+        <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden shadow-lg shadow-black/20" data-keywords="config email name defaultbranch editor setup global">
+          <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+            <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git config --global user.name &quot;Your Name&quot;
+git config --global user.email &quot;you@example.com&quot;
+git config --global init.defaultBranch main
+git config --global pull.rebase true
+git config --global core.editor &quot;nano&quot;">Copy</button>
+
+            <div class="space-y-3 leading-relaxed">
+              <div>
+                <span class="text-slate-500"># Commit identity metadata attached to every snapshot</span><br>
+                <span class="code-cmd">git</span> config --global user.name <span class="text-emerald-300">"Your Name"</span>
+              </div>
+              <div>
+                <span class="code-cmd">git</span> config --global user.email <span class="text-emerald-300">"you@example.com"</span>
+              </div>
+              <div>
+                <span class="text-slate-500"># Set industry standard default branch name (avoids legacy 'master')</span><br>
+                <span class="code-cmd">git</span> config --global init.defaultBranch main
+              </div>
+              <div>
+                <span class="text-slate-500"># Avoid accidental messy merge bubbles when pulling</span><br>
+                <span class="code-cmd">git</span> config --global pull.rebase true
+              </div>
+              <div>
+                <span class="text-slate-500"># Editor for commit messages (nano, vim, or &quot;code --wait&quot;)</span><br>
+                <span class="code-cmd">git</span> config --global core.editor <span class="text-emerald-300">"nano"</span>
+              </div>
+            </div>
+          </div>
+          <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border flex justify-between items-center">
+            <span>Inspect current config:</span>
+            <code class="text-blue-400 font-mono">git config --list --show-origin</code>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. REMOTE SERVER AUTH -->
+      <section id="auth" class="cheatsheet-section scroll-mt-24 space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">STEP 03</span>
+            <h2 class="text-lg font-bold text-white">Remote Server Authentication (GitHub / GitLab)</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Password authentication was deprecated. Choose GitHub CLI (modern wizard) or traditional Ed25519 SSH keys.</p>
+        </div>
+
+        <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden shadow-lg shadow-black/20" data-keywords="auth ssh ssh-keygen github gh login token keygen ed25519">
+          <!-- Tabs Header -->
+          <div class="flex items-center justify-between bg-[#191d24] px-4 border-b border-surface-border">
+            <div class="flex space-x-1 tab-nav" data-tab-group="auth">
+              <button class="tab-btn active px-3 py-2.5 text-xs font-medium border-b-2 border-blue-500 text-white" data-target="auth-gh">Modern: GitHub CLI (Recommended)</button>
+              <button class="tab-btn px-3 py-2.5 text-xs font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200" data-target="auth-ssh">Alternative: SSH-Keygen</button>
+            </div>
+          </div>
+
+          <div class="tab-group-container">
+            <!-- Modern GitHub CLI -->
+            <div id="auth-gh" class="tab-pane active">
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="gh auth login">Copy</button>
+                <div class="space-y-2">
+                  <div class="text-slate-500"># Automates browser verification, SSH key generation, and token registration in one terminal wizard</div>
+                  <div><span class="code-cmd">gh</span> auth login</div>
+                </div>
+              </div>
+              <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+                Prompt selections: <strong>GitHub.com</strong> &rarr; <strong>SSH</strong> &rarr; <strong>Paste one-time code in browser</strong>.
+              </div>
+            </div>
+
+            <!-- SSH Keygen -->
+            <div id="auth-ssh" class="tab-pane hidden">
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="ssh-keygen -t ed25519 -C &quot;you@example.com&quot;
+eval &quot;$(ssh-agent -s)&quot;
+ssh-add ~/.ssh/id_ed25519
+cat ~/.ssh/id_ed25519.pub">Copy</button>
+                <div class="space-y-3 leading-relaxed">
+                  <div>
+                    <span class="text-slate-500"># 1. Generate modern Ed25519 elliptic curve keypair</span><br>
+                    <span class="code-cmd">ssh-keygen</span> -t ed25519 -C <span class="text-emerald-300">"you@example.com"</span>
+                  </div>
+                  <div>
+                    <span class="text-slate-500"># 2. Launch background SSH agent &amp; load private key</span><br>
+                    <span class="code-cmd">eval</span> <span class="text-amber-300">"$(ssh-agent -s)"</span><br>
+                    <span class="code-cmd">ssh-add</span> ~/.ssh/id_ed25519
+                  </div>
+                  <div>
+                    <span class="text-slate-500"># 3. Print public key (paste output into GitHub Settings &rarr; SSH Keys)</span><br>
+                    <span class="code-cmd">cat</span> ~/.ssh/id_ed25519.pub
+                  </div>
+                </div>
+              </div>
+              <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+                Test connection: <code class="text-slate-200 font-mono">ssh -T git@github.com</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. REPO STARTING & GITIGNORE -->
+      <section id="repo-start" class="cheatsheet-section scroll-mt-24 space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">STEP 04</span>
+            <h2 class="text-lg font-bold text-white">Starting Repositories &amp; Ignoring Secrets</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Initialize brand new directories, clone remotes, and prevent accidental secret check-ins.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- New Repo -->
+          <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden flex flex-col justify-between" data-keywords="init new create repository start">
+            <div>
+              <div class="px-4 py-2 bg-[#191d24] border-b border-surface-border text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Start From Scratch Locally
+              </div>
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git init -b main">Copy</button>
+                <div class="space-y-2">
+                  <div class="text-slate-500"># Initialize directory with 'main' branch</div>
+                  <div><span class="code-cmd">git</span> init <span class="code-flag">-b</span> main</div>
+                </div>
+              </div>
+            </div>
+            <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+              Creates internal hidden <code class="text-slate-300 font-mono">.git/</code> directory tracking engine.
+            </div>
+          </div>
+
+          <!-- Clone Existing -->
+          <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden flex flex-col justify-between" data-keywords="clone download remote github">
+            <div>
+              <div class="px-4 py-2 bg-[#191d24] border-b border-surface-border text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Clone Remote Repository
+              </div>
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git clone git@github.com:user/repo.git">Copy</button>
+                <div class="space-y-2">
+                  <div class="text-slate-500"># Clones full history into folder 'repo'</div>
+                  <div><span class="code-cmd">git</span> clone <span class="text-emerald-300">git@github.com:user/repo.git</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+              Configures pointer <code class="text-slate-300 font-mono">origin</code> pointing back to source.
+            </div>
+          </div>
+        </div>
+
+        <!-- Untracking and Gitignore Card -->
+        <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden" data-keywords="gitignore untrack cached secrets rm">
+          <div class="px-4 py-2 bg-[#191d24] border-b border-surface-border text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            Untrack Files Without Deleting From Disk
+          </div>
+          <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+            <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="echo &quot;.env&quot; >> .gitignore
+git rm --cached .env
+git rm -r --cached node_modules/
+git commit -m &quot;chore: untrack sensitive files and build dirs&quot;">Copy</button>
+            <div class="space-y-3 leading-relaxed">
+              <div>
+                <span class="text-slate-500"># 1. Append ignored patterns to .gitignore</span><br>
+                <span class="code-cmd">echo</span> <span class="text-emerald-300">".env"</span> &gt;&gt; .gitignore
+              </div>
+              <div>
+                <span class="text-slate-500"># 2. Pull already-tracked file out of Git index (keeps local copy intact)</span><br>
+                <span class="code-cmd">git</span> rm <span class="code-flag">--cached</span> .env<br>
+                <span class="code-cmd">git</span> rm <span class="code-flag">-r --cached</span> node_modules/
+              </div>
+              <div>
+                <span class="text-slate-500"># 3. Commit untracked state to repo</span><br>
+                <span class="code-cmd">git</span> commit <span class="code-flag">-m</span> <span class="text-emerald-300">"chore: stop tracking sensitive files"</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. DAILY CORE WORKFLOW -->
+      <section id="daily-loop" class="cheatsheet-section scroll-mt-24 space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">STEP 05</span>
+            <h2 class="text-lg font-bold text-white">Daily Core Loop (Stage &rarr; Diff &rarr; Commit &rarr; Amend)</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">The primary cycle used 95% of the time during active coding.</p>
+        </div>
+
+        <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden shadow-lg shadow-black/20" data-keywords="add commit status diff stage changes daily loop amend">
+          <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+            <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git status -s
+git add file.js
+git add .
+git diff
+git diff --staged
+git commit -m &quot;feat: description of changes&quot;
+git commit --amend --no-edit">Copy</button>
+            <div class="space-y-3 leading-relaxed">
+              <div>
+                <span class="text-slate-500"># 1. Compact status check (M = Modified, ? = Untracked, A = Added)</span><br>
+                <span class="code-cmd">git</span> status <span class="code-flag">-s</span>
+              </div>
+              <div>
+                <span class="text-slate-500"># 2. Stage specific file, or stage ALL modifications in repository</span><br>
+                <span class="code-cmd">git</span> add <span class="text-slate-200">file.js</span><br>
+                <span class="code-cmd">git</span> add .
+              </div>
+              <div>
+                <span class="text-slate-500"># 3. View working unstaged diffs vs. staged changes ready to be committed</span><br>
+                <span class="code-cmd">git</span> diff<br>
+                <span class="code-cmd">git</span> diff <span class="code-flag">--staged</span>
+              </div>
+              <div>
+                <span class="text-slate-500"># 4. Record permanent snapshot with clear imperative message</span><br>
+                <span class="code-cmd">git</span> commit <span class="code-flag">-m</span> <span class="text-emerald-300">"feat: concise description of work done"</span>
+              </div>
+              <div>
+                <span class="text-slate-500"># Quick fix: Fold newly staged changes into previous commit without prompt</span><br>
+                <span class="code-cmd">git</span> commit <span class="code-flag">--amend --no-edit</span>
+              </div>
+            </div>
+          </div>
+          <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+            To combine staging tracked files and committing into one step: <code class="text-amber-400 font-mono">git commit -am "message"</code>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. BRANCHING & SWITCHING -->
+      <section id="branching" class="cheatsheet-section scroll-mt-24 space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">STEP 06</span>
+            <h2 class="text-lg font-bold text-white">Branching &amp; Switching Context</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Keep experiments separate from production code using lightweight pointer branches.</p>
+        </div>
+
+        <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden shadow-lg shadow-black/20" data-keywords="branch switch checkout branch-create checkout-b">
+          <!-- Tabs Header -->
+          <div class="flex items-center justify-between bg-[#191d24] px-4 border-b border-surface-border">
+            <div class="flex space-x-1 tab-nav" data-tab-group="branch">
+              <button class="tab-btn active px-3 py-2.5 text-xs font-medium border-b-2 border-blue-500 text-white" data-target="branch-modern">Modern: git switch (Recommended)</button>
+              <button class="tab-btn px-3 py-2.5 text-xs font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200" data-target="branch-legacy">Alternative: git checkout (Legacy)</button>
+            </div>
+          </div>
+
+          <div class="tab-group-container">
+            <!-- Modern Switch -->
+            <div id="branch-modern" class="tab-pane active">
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git switch -c feature/login
+git switch main
+git switch -
+git branch -d feature/login">Copy</button>
+                <div class="space-y-3 leading-relaxed">
+                  <div>
+                    <span class="text-slate-500"># Create and switch to new branch immediately (-c = create)</span><br>
+                    <span class="code-cmd">git</span> switch <span class="code-flag">-c</span> <span class="text-indigo-300">feature/login</span>
+                  </div>
+                  <div>
+                    <span class="text-slate-500"># Switch between existing branches</span><br>
+                    <span class="code-cmd">git</span> switch <span class="text-indigo-300">main</span>
+                  </div>
+                  <div>
+                    <span class="text-slate-500"># Jump back to previous branch (like cd -)</span><br>
+                    <span class="code-cmd">git</span> switch -
+                  </div>
+                  <div>
+                    <span class="text-slate-500"># Safely delete merged branch (-D for force delete)</span><br>
+                    <span class="code-cmd">git</span> branch <span class="code-flag">-d</span> <span class="text-indigo-300">feature/login</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Legacy Checkout -->
+            <div id="branch-legacy" class="tab-pane hidden">
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git checkout -b feature/login
+git checkout main">Copy</button>
+                <div class="space-y-3 leading-relaxed">
+                  <div>
+                    <span class="text-slate-500"># Legacy: create (-b) and switch</span><br>
+                    <span class="code-cmd">git</span> checkout <span class="code-flag">-b</span> <span class="text-indigo-300">feature/login</span>
+                  </div>
+                  <div>
+                    <span class="text-slate-500"># Legacy: switch to existing branch</span><br>
+                    <span class="code-cmd">git</span> checkout <span class="text-indigo-300">main</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. FORKS & UPSTREAM SYNCING -->
+      <section id="forks-remotes" class="cheatsheet-section scroll-mt-24 space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-pink-500/10 text-pink-400 border border-pink-500/20">STEP 07</span>
+            <h2 class="text-lg font-bold text-white">Forks, Remotes &amp; Upstream Synchronization</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">When working with open-source forks: <code class="font-mono text-pink-300">origin</code> = your fork, <code class="font-mono text-pink-300">upstream</code> = original repository.</p>
+        </div>
+
+        <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden shadow-lg shadow-black/20" data-keywords="fork upstream remote push pull fetch sync rebase origin">
+          <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+            <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git remote -v
+git remote add upstream https://github.com/original-owner/repo.git
+git fetch upstream
+git switch main
+git merge upstream/main
+git push -u origin feature/login">Copy</button>
+
+            <div class="space-y-3 leading-relaxed">
+              <div>
+                <span class="text-slate-500"># 1. View configured remotes &amp; wire up original repo as 'upstream'</span><br>
+                <span class="code-cmd">git</span> remote <span class="code-flag">-v</span><br>
+                <span class="code-cmd">git</span> remote add upstream <span class="text-emerald-300">https://github.com/original-owner/repo.git</span>
+              </div>
+              <div>
+                <span class="text-slate-500"># 2. Download latest upstream commits without modifying working tree</span><br>
+                <span class="code-cmd">git</span> fetch upstream
+              </div>
+              <div>
+                <span class="text-slate-500"># 3. Bring local main up-to-date with upstream parent repo</span><br>
+                <span class="code-cmd">git</span> switch main<br>
+                <span class="code-cmd">git</span> merge upstream/main
+              </div>
+              <div>
+                <span class="text-slate-500"># 4. Push branch to your personal fork (-u links tracking branch)</span><br>
+                <span class="code-cmd">git</span> push <span class="code-flag">-u</span> origin <span class="text-pink-300">feature/login</span>
+              </div>
+            </div>
+          </div>
+          <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+            Always pull with rebase to keep history clean: <code class="text-pink-400 font-mono">git pull --rebase origin main</code>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. MERGING VS REBASING -->
+      <section id="rebase-merge" class="cheatsheet-section scroll-mt-24 space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-teal-500/10 text-teal-400 border border-teal-500/20">STEP 08</span>
+            <h2 class="text-lg font-bold text-white">Merging vs. Rebasing</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Merging joins branches with a commit; rebasing replays commits sequentially for a linear history.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Merge -->
+          <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden flex flex-col justify-between" data-keywords="merge fast-forward branch combine">
+            <div>
+              <div class="px-4 py-2 bg-[#191d24] border-b border-surface-border text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Standard Merge
+              </div>
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git switch main
+git merge feature/login">Copy</button>
+                <div class="space-y-3 leading-relaxed">
+                  <div>
+                    <span class="text-slate-500"># Switch to target receiver branch</span><br>
+                    <span class="code-cmd">git</span> switch main
+                  </div>
+                  <div>
+                    <span class="text-slate-500"># Creates merge commit with two parents</span><br>
+                    <span class="code-cmd">git</span> merge feature/login
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+              Safe on shared public branches. Preserves full chronological context.
+            </div>
+          </div>
+
+          <!-- Rebase -->
+          <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden flex flex-col justify-between" data-keywords="rebase interactive linear squash squash-commits">
+            <div>
+              <div class="px-4 py-2 bg-[#191d24] border-b border-surface-border text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Rebase (Clean Linear Tree)
+              </div>
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git switch feature/login
+git rebase main
+git rebase -i HEAD~3">Copy</button>
+                <div class="space-y-3 leading-relaxed">
+                  <div>
+                    <span class="text-slate-500"># Replays feature commits on top of current main</span><br>
+                    <span class="code-cmd">git</span> switch feature/login<br>
+                    <span class="code-cmd">git</span> rebase main
+                  </div>
+                  <div>
+                    <span class="text-slate-500"># Squash and tidy last 3 commits interactively</span><br>
+                    <span class="code-cmd">git</span> rebase <span class="code-flag">-i</span> HEAD~3
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+              In interactive editor: replace <code class="font-mono text-teal-300">pick</code> with <code class="font-mono text-teal-300">squash</code> to merge micro-commits.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9. RESOLVING CONFLICTS -->
+      <section id="conflicts" class="cheatsheet-section scroll-mt-24 space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">STEP 09</span>
+            <h2 class="text-lg font-bold text-white">Resolving Conflicts &amp; Emergency Exits</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">When branches touch the exact same line, Git pauses and writes conflict markers for you to resolve.</p>
+        </div>
+
+        <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden shadow-lg shadow-black/20" data-keywords="conflict resolve abort markers <<<<<<< ======= >>>>>>> merge rebase">
+          <!-- Marker preview -->
+          <div class="p-4 font-mono text-xs bg-[#0b0d10] border-b border-surface-border text-slate-300 space-y-1">
+            <div class="text-slate-500"># Conflict markers injected into files:</div>
+            <div class="text-red-400">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD (current branch version)</div>
+            <div class="text-emerald-400">const API_URL = "https://api.internal.dev";</div>
+            <div class="text-amber-400">=======</div>
+            <div class="text-cyan-400">const API_URL = "https://api.production.com";</div>
+            <div class="text-red-400">&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/login (incoming version)</div>
+          </div>
+
+          <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+            <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="# 1. Edit conflicting file, keep correct lines, delete marker lines
+git add resolved_file.js
+
+# 2. Advance the paused operation:
+git rebase --continue
+# or: git merge --continue
+
+# Emergency bailout: restore repository to state before conflict
+git rebase --abort
+git merge --abort">Copy</button>
+
+            <div class="space-y-3 leading-relaxed">
+              <div>
+                <span class="text-slate-500"># 1. Edit file manually, delete marker lines, and stage resolved file</span><br>
+                <span class="code-cmd">git</span> add resolved_file.js
+              </div>
+              <div>
+                <span class="text-slate-500"># 2. Resume operation depending on what you initiated</span><br>
+                <span class="code-cmd">git</span> rebase <span class="code-flag">--continue</span><br>
+                <span class="text-slate-500"># Or if resolving inside a merge:</span><br>
+                <span class="code-cmd">git</span> merge <span class="code-flag">--continue</span>
+              </div>
+              <div>
+                <span class="text-slate-500"># 3. Emergency escape hatch (cancels everything safely)</span><br>
+                <span class="code-cmd">git</span> rebase <span class="code-flag">--abort</span><br>
+                <span class="code-cmd">git</span> merge <span class="code-flag">--abort</span>
+              </div>
+            </div>
+          </div>
+          <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+            Run <code class="text-slate-200 font-mono">git status</code> to see every file flagged under "Both modified".
+          </div>
+        </div>
+      </section>
+
+      <!-- 10. HISTORY & TIME TRAVEL (UNDO) -->
+      <section id="time-travel" class="cheatsheet-section scroll-mt-24 space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">STEP 10</span>
+            <h2 class="text-lg font-bold text-white">Undoing Mistakes, History &amp; Reflog Rescue</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Nothing is truly lost in Git until cleaned by garbage collection. Rescue commits using reflog.</p>
+        </div>
+
+        <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden shadow-lg shadow-black/20" data-keywords="log graph reset revert restore undo checkout detach history reflog recover lost">
+          <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+            <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git log --oneline --graph --all
+git restore file.js
+git restore --staged file.js
+git revert 7b3a19c
+git reset --soft HEAD~1
+git reset --hard HEAD~1
+git reflog
+git reset --hard HEAD@{1}">Copy</button>
+
+            <div class="space-y-3 leading-relaxed">
+              <div>
+                <span class="text-slate-500"># Visual concise tree of all branches</span><br>
+                <span class="code-cmd">git</span> log <span class="code-flag">--oneline --graph --all</span>
+              </div>
+              <div>
+                <span class="text-slate-500"># Discard unstaged changes in working file</span><br>
+                <span class="code-cmd">git</span> restore <span class="text-slate-200">file.js</span>
+              </div>
+              <div>
+                <span class="text-slate-500"># Unstage file back to working tree without modifying its content</span><br>
+                <span class="code-cmd">git</span> restore <span class="code-flag">--staged</span> <span class="text-slate-200">file.js</span>
+              </div>
+              <div>
+                <span class="text-slate-500"># Safe undo on public shared branch: commits the exact opposite diff</span><br>
+                <span class="code-cmd">git</span> revert <span class="text-amber-300">7b3a19c</span>
+              </div>
+              <div>
+                <span class="text-slate-500"># Soft undo: resets last commit, but retains all file edits in staging</span><br>
+                <span class="code-cmd">git</span> reset <span class="code-flag">--soft</span> HEAD~1
+              </div>
+              <div>
+                <span class="text-slate-500"># Destructive undo: nukes commit and all uncommitted code</span><br>
+                <span class="code-cmd">git</span> reset <span class="code-flag">--hard</span> HEAD~1
+              </div>
+              <div>
+                <span class="text-slate-500"># Emergency rescue: view chronological history of EVERY action &amp; restore</span><br>
+                <span class="code-cmd">git</span> reflog<br>
+                <span class="code-cmd">git</span> reset <span class="code-flag">--hard</span> HEAD@{1}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 11. PRECISION WORKFLOW: CHERRY-PICK & TAGS -->
+      <section id="precision-tools" class="cheatsheet-section scroll-mt-24 space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">STEP 11</span>
+            <h2 class="text-lg font-bold text-white">Precision Tools: Cherry-Picking &amp; Release Tags</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Port single commits across branches and create production release tags.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Cherry Pick -->
+          <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden flex flex-col justify-between" data-keywords="cherry-pick patch port commit">
+            <div>
+              <div class="px-4 py-2 bg-[#191d24] border-b border-surface-border text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Cherry-Pick Commits
+              </div>
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git switch main
+git cherry-pick 3fa82c1
+git cherry-pick --abort">Copy</button>
+                <div class="space-y-3 leading-relaxed">
+                  <div>
+                    <span class="text-slate-500"># Apply one specific commit onto current branch</span><br>
+                    <span class="code-cmd">git</span> switch main<br>
+                    <span class="code-cmd">git</span> cherry-pick <span class="text-amber-300">3fa82c1</span>
+                  </div>
+                  <div>
+                    <span class="text-slate-500"># Bail out if conflicts appear:</span><br>
+                    <span class="code-cmd">git</span> cherry-pick <span class="code-flag">--abort</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+              Ideal for pulling a bugfix from an unmerged branch into production.
+            </div>
+          </div>
+
+          <!-- Tags -->
+          <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden flex flex-col justify-between" data-keywords="tag release versioning semver push-tags">
+            <div>
+              <div class="px-4 py-2 bg-[#191d24] border-b border-surface-border text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Semantic Release Tags
+              </div>
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git tag -a v1.0.0 -m &quot;Release version 1.0.0&quot;
+git push origin v1.0.0
+git push origin --tags">Copy</button>
+                <div class="space-y-3 leading-relaxed">
+                  <div>
+                    <span class="text-slate-500"># Create annotated release tag</span><br>
+                    <span class="code-cmd">git</span> tag <span class="code-flag">-a</span> v1.0.0 <span class="code-flag">-m</span> <span class="text-emerald-300">"Release version 1.0.0"</span>
+                  </div>
+                  <div>
+                    <span class="text-slate-500"># Tags are NOT pushed by default; push explicitly:</span><br>
+                    <span class="code-cmd">git</span> push origin v1.0.0<br>
+                    <span class="code-cmd">git</span> push origin <span class="code-flag">--tags</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+              GitHub automatically converts pushed tags into Release downloads.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 12. STASHING -->
+      <section id="stashing" class="cheatsheet-section scroll-mt-24 space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">STEP 12</span>
+            <h2 class="text-lg font-bold text-white">Temporary Stashing</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Shelve dirty uncommitted work without committing, switch tasks, then pop it back.</p>
+        </div>
+
+        <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden shadow-lg shadow-black/20" data-keywords="stash pop save temporary shelf list drop">
+          <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+            <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git stash -u -m &quot;wip: temporary work&quot;
+git stash list
+git stash pop
+git stash drop">Copy</button>
+
+            <div class="space-y-3 leading-relaxed">
+              <div>
+                <span class="text-slate-500"># Save current dirty workspace (including untracked files with -u)</span><br>
+                <span class="code-cmd">git</span> stash <span class="code-flag">-u</span> <span class="code-flag">-m</span> <span class="text-emerald-300">"wip: temporary work"</span>
+              </div>
+              <div>
+                <span class="text-slate-500"># View saved stashes shelf</span><br>
+                <span class="code-cmd">git</span> stash list
+              </div>
+              <div>
+                <span class="text-slate-500"># Reapply latest stash and pop it from shelf</span><br>
+                <span class="code-cmd">git</span> stash pop
+              </div>
+              <div>
+                <span class="text-slate-500"># Discard latest stash without applying</span><br>
+                <span class="code-cmd">git</span> stash drop
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 13. POWER TOOLS: WORKTREES & SUBMODULES -->
+      <section id="power-tools" class="cheatsheet-section scroll-mt-24 space-y-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-violet-500/10 text-violet-400 border border-violet-500/20">STEP 13</span>
+            <h2 class="text-lg font-bold text-white">Power Tools: Worktrees &amp; Submodules</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Work on multiple branches simultaneously in sibling directories without switching branches.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Worktrees -->
+          <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden flex flex-col justify-between" data-keywords="worktree parallel checkout folders simultaneous">
+            <div>
+              <div class="px-4 py-2 bg-[#191d24] border-b border-surface-border text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Git Worktrees (Parallel Folders)
+              </div>
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git worktree add ../hotfix-branch hotfix-branch
+git worktree list
+git worktree remove ../hotfix-branch">Copy</button>
+                <div class="space-y-3 leading-relaxed">
+                  <div>
+                    <span class="text-slate-500"># Check out branch into sibling folder</span><br>
+                    <span class="code-cmd">git</span> worktree add ../hotfix hotfix-branch
+                  </div>
+                  <div>
+                    <span class="text-slate-500"># Inspect active worktrees</span><br>
+                    <span class="code-cmd">git</span> worktree list
+                  </div>
+                  <div>
+                    <span class="text-slate-500"># Cleanup when finished</span><br>
+                    <span class="code-cmd">git</span> worktree remove ../hotfix
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+              No need to stash or wait for builds when fixing an urgent bug!
+            </div>
+          </div>
+
+          <!-- Submodules -->
+          <div class="card-item bg-[#14171d] rounded-xl border border-surface-border overflow-hidden flex flex-col justify-between" data-keywords="submodule recurse submodules nested sub-repo">
+            <div>
+              <div class="px-4 py-2 bg-[#191d24] border-b border-surface-border text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Git Submodules (Nested Repos)
+              </div>
+              <div class="relative group p-4 font-mono text-sm bg-[#101317]">
+                <button class="copy-btn absolute top-3 right-3 px-2 py-1 text-xs rounded bg-surface-200 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-all opacity-80 group-hover:opacity-100" data-copy="git clone --recurse-submodules git@github.com:user/repo.git
+git submodule update --init --recursive">Copy</button>
+                <div class="space-y-3 leading-relaxed">
+                  <div>
+                    <span class="text-slate-500"># Clone repo including all nested repos</span><br>
+                    <span class="code-cmd">git</span> clone <span class="code-flag">--recurse-submodules</span> <span class="text-slate-200">repo.git</span>
+                  </div>
+                  <div>
+                    <span class="text-slate-500"># Initialize missing submodules in existing repo:</span><br>
+                    <span class="code-cmd">git</span> submodule update <span class="code-flag">--init --recursive</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="px-4 py-2.5 text-xs text-slate-400 bg-[#161a22] border-t border-surface-border">
+              Ensures nested dependencies are cloned and checked out properly.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div id="noResults" class="hidden p-8 text-center text-slate-500 border border-dashed border-surface-border rounded-xl">
+        No git commands matched your search term. Press ESC to reset.
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-blue-600 text-white font-mono text-xs px-4 py-2.5 rounded-lg shadow-xl shadow-blue-500/30 transform translate-y-16 opacity-0 transition-all duration-200 pointer-events-none z-50 flex items-center gap-2">
+    <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+    <span>Command copied to clipboard</span>
+  </div>
+
+  <script>
+    // Tab switching mechanism
+    document.querySelectorAll('.tab-nav').forEach(group => {
+      const buttons = group.querySelectorAll('.tab-btn');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('data-target');
+          const parentCard = btn.closest('.card-item');
+          
+          buttons.forEach(b => {
+            b.classList.remove('active', 'border-blue-500', 'text-white');
+            b.classList.add('border-transparent', 'text-slate-400');
+          });
+          
+          btn.classList.add('active', 'border-blue-500', 'text-white');
+          btn.classList.remove('border-transparent', 'text-slate-400');
+          
+          parentCard.querySelectorAll('.tab-pane').forEach(pane => {
+            if (pane.id === targetId) {
+              pane.classList.remove('hidden');
+              pane.classList.add('active');
+            } else {
+              pane.classList.add('hidden');
+              pane.classList.remove('active');
+            }
+          });
+        });
+      });
+    });
+
+    // Reliable clipboard copy function
+    function copyText(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'absolute';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      
+      try {
+        document.execCommand('copy');
+        showToast();
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+      }
+      document.body.removeChild(textarea);
+    }
+
+    const toast = document.getElementById('toast');
+    let toastTimeout;
+    function showToast() {
+      clearTimeout(toastTimeout);
+      toast.classList.remove('translate-y-16', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-16', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 1600);
+    }
+
+    // Attach copy buttons
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const code = btn.getAttribute('data-copy');
+        copyText(code);
+        
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.add('text-blue-400');
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.remove('text-blue-400');
+        }, 1200);
+      });
+    });
+
+    // Real-time search filter
+    const searchInput = document.getElementById('searchInput');
+    const sections = document.querySelectorAll('.cheatsheet-section');
+    const noResults = document.getElementById('noResults');
+
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      let visibleSectionsCount = 0;
+
+      sections.forEach(section => {
+        // Keep Roadmap Tree visible unless search is very specific and it doesn't match
+        if (section.id === 'roadmap-tree') {
+          if (!query || 'learning tree roadmap guide hierarchy overview'.includes(query)) {
+            section.classList.remove('hidden');
+            visibleSectionsCount++;
+          } else {
+            section.classList.add('hidden');
+          }
+          return;
+        }
+
+        const cards = section.querySelectorAll('.card-item');
+        let sectionHasMatches = false;
+
+        cards.forEach(card => {
+          const keywords = (card.getAttribute('data-keywords') || '').toLowerCase();
+          const cardText = card.innerText.toLowerCase();
+          
+          if (!query || keywords.includes(query) || cardText.includes(query)) {
+            card.classList.remove('hidden');
+            sectionHasMatches = true;
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+
+        if (sectionHasMatches || !query) {
+          section.classList.remove('hidden');
+          visibleSectionsCount++;
+        } else {
+          section.classList.add('hidden');
+        }
+      });
+
+      if (visibleSectionsCount === 0) {
+        noResults.classList.remove('hidden');
+      } else {
+        noResults.classList.add('hidden');
+      }
+    });
+
+    // ESC to clear search filter
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+        searchInput.blur();
+      }
+    });
+  </script>
+</body>
+</html>

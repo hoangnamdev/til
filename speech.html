@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure Speech Pronunciation Coach</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons CDN -->
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
+    <!-- Microsoft Cognitive Services Speech SDK -->
+    <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#1e1b4b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 0.3; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .animate-pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans min-h-screen flex flex-col">
+
+    <!-- Top Navigation -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-200">
+                    <i class="ph ph-waveform text-2xl font-bold"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 leading-tight">Azure Accent & Fluency Coach</h1>
+                    <p class="text-xs text-slate-500 font-medium">Cognitive Services Speech Evaluation</p>
+                </div>
+            </div>
+
+            <!-- Header Action buttons -->
+            <div class="flex items-center gap-3">
+                <button id="btnOpenHelp" class="text-slate-500 hover:text-slate-800 p-2 rounded-lg hover:bg-slate-100 transition-colors" title="Setup Instructions">
+                    <i class="ph ph-question text-xl"></i>
+                </button>
+                <button id="btnOpenSettings" class="flex items-center gap-2 px-3.5 py-2 text-sm font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                    <i class="ph ph-gear text-lg"></i>
+                    <span class="hidden sm:inline">Azure Settings</span>
+                    <span id="azureStatusBadge" class="w-2.5 h-2.5 rounded-full bg-red-400"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Practice Library & Prompt Studio -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            <!-- Category & Prompt Selection -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col gap-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <i class="ph ph-books text-base"></i> Practice Library
+                    </span>
+                    <span id="levelBadge" class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800">Beginner</span>
+                </div>
+
+                <!-- Difficulty Tabs -->
+                <div class="grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-xl text-xs font-bold text-slate-600">
+                    <button class="level-tab py-2 rounded-lg bg-white text-indigo-600 shadow-sm transition" data-level="Beginner">Beginner</button>
+                    <button class="level-tab py-2 rounded-lg hover:text-slate-900 transition" data-level="Intermediate">Intermediate</button>
+                    <button class="level-tab py-2 rounded-lg hover:text-slate-900 transition" data-level="Advanced">Advanced</button>
+                </div>
+
+                <!-- Sample selector -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1.5">Curated Sentences</label>
+                    <select id="presetSelect" class="w-full text-sm font-medium border border-slate-200 rounded-xl px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
+                <!-- Custom Editable Prompt -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1.5">Target Text (or write your own)</label>
+                    <div class="relative">
+                        <textarea id="targetText" rows="4" class="w-full text-sm sm:text-base font-medium border border-slate-200 rounded-xl p-3 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition leading-relaxed resize-none custom-scrollbar" placeholder="Type or select a sentence to practice..."></textarea>
+                        <div class="absolute bottom-2.5 right-2.5 flex items-center gap-1">
+                            <span id="wordCountBadge" class="text-[11px] font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">0 words</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reference Audio Player (TTS) -->
+                <div class="pt-2 border-t border-slate-100 flex flex-col gap-3">
+                    <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
+                        <span class="flex items-center gap-1.5"><i class="ph ph-speaker-high text-base"></i> Native Model Pronunciation</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <select id="ttsVoice" class="text-xs font-medium border border-slate-200 rounded-lg px-2.5 py-2 bg-slate-50 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                            <option value="en-US-JennyNeural">US English: Jenny (Natural)</option>
+                            <option value="en-US-GuyNeural">US English: Guy (Natural)</option>
+                            <option value="en-GB-SoniaNeural">UK English: Sonia (British)</option>
+                            <option value="en-GB-RyanNeural">UK English: Ryan (British)</option>
+                            <option value="en-AU-NatashaNeural">AU English: Natasha (Australian)</option>
+                        </select>
+                        <div class="flex items-center gap-2">
+                            <button id="btnPlayTTS" class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs rounded-lg transition">
+                                <i class="ph-bold ph-play"></i> Listen Target
+                            </button>
+                            <button id="btnStopTTS" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition" title="Stop Audio">
+                                <i class="ph ph-stop text-base"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Tips Panel -->
+            <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white rounded-2xl p-5 shadow-sm">
+                <h3 class="text-sm font-bold flex items-center gap-2 text-indigo-200 mb-2">
+                    <i class="ph ph-lightbulb text-yellow-300 text-lg"></i>
+                    How to get 90+ Scores
+                </h3>
+                <ul class="text-xs text-slate-300 space-y-2 leading-relaxed">
+                    <li>• <strong>Fluency:</strong> Avoid long pauses or repetitive stutters between words.</li>
+                    <li>• <strong>Prosody:</strong> Keep natural intonation and cadence rather than robotic delivery.</li>
+                    <li>• <strong>Completeness:</strong> Ensure you read every word in the prompt without skipping articles.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Right Column: Speaking Studio & Assessment Dashboard -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+
+            <!-- Recording Stage Card -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
+                <!-- Status Tag -->
+                <div class="w-full flex justify-between items-center mb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Microphone Input</span>
+                    <span id="recordingStatus" class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+                        <span class="w-2 h-2 rounded-full bg-slate-400"></span> Idle
+                    </span>
+                </div>
+
+                <!-- Mic Animation Ring & Button -->
+                <div class="relative my-4 flex items-center justify-center">
+                    <div id="micPulseRing" class="hidden absolute w-32 h-32 rounded-full bg-indigo-500 opacity-20 animate-pulse-ring"></div>
+                    <button id="btnRecord" class="relative z-10 w-24 h-24 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-300 flex flex-col items-center justify-center gap-1 transition-all active:scale-95 focus:outline-none">
+                        <i id="recordIcon" class="ph ph-microphone text-3xl"></i>
+                        <span id="recordLabel" class="text-[11px] font-bold uppercase tracking-wide">Start</span>
+                    </button>
+                </div>
+
+                <!-- Audio Wave Canvas -->
+                <canvas id="waveformCanvas" class="w-full h-12 rounded-lg bg-slate-50 border border-slate-100 mb-2"></canvas>
+                <p id="assessmentHint" class="text-xs text-slate-400 font-medium text-center">
+                    Click the microphone, grant browser audio permission, and read the prompt clearly.
+                </p>
+            </div>
+
+            <!-- Assessment Results Dashboard -->
+            <div id="resultsCard" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col gap-6">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Pronunciation Metrics</h2>
+                        <p class="text-xs text-slate-500">Breakdown from Azure Speech Assessment API</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold text-slate-400">Overall Score:</span>
+                        <span id="scorePronunciation" class="text-2xl font-black text-indigo-600 font-mono">--</span>
+                        <span class="text-xs font-medium text-slate-400">/ 100</span>
+                    </div>
+                </div>
+
+                <!-- 4 Core Metric Gauges -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="bg-slate-50 border border-slate-100 p-3 rounded-xl flex flex-col items-center justify-center text-center">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Accuracy</span>
+                        <span id="scoreAccuracy" class="text-xl font-extrabold text-slate-700 font-mono mt-0.5">--</span>
+                        <span class="text-[10px] text-slate-400 mt-0.5">Phoneme match</span>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 p-3 rounded-xl flex flex-col items-center justify-center text-center">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Fluency</span>
+                        <span id="scoreFluency" class="text-xl font-extrabold text-slate-700 font-mono mt-0.5">--</span>
+                        <span class="text-[10px] text-slate-400 mt-0.5">Rhythm & Pauses</span>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 p-3 rounded-xl flex flex-col items-center justify-center text-center">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Completeness</span>
+                        <span id="scoreCompleteness" class="text-xl font-extrabold text-slate-700 font-mono mt-0.5">--</span>
+                        <span class="text-[10px] text-slate-400 mt-0.5">Words detected</span>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 p-3 rounded-xl flex flex-col items-center justify-center text-center">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Prosody</span>
+                        <span id="scoreProsody" class="text-xl font-extrabold text-slate-700 font-mono mt-0.5">--</span>
+                        <span class="text-[10px] text-slate-400 mt-0.5">Stress & Pitch</span>
+                    </div>
+                </div>
+
+                <!-- Word Level Interactive Diagnosis -->
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Word-by-Word Analysis</h3>
+                        <div class="flex items-center gap-3 text-[11px] font-medium text-slate-500">
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 80-100 Good</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> 60-79 Fair</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> &lt;60 Poor</span>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Word Container -->
+                    <div id="wordsContainer" class="min-h-[90px] p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap gap-2 items-center">
+                        <p class="text-xs text-slate-400 italic">No assessment data yet. Record speech to evaluate words.</p>
+                    </div>
+                </div>
+
+                <!-- Phoneme Inspector Drawer (Shown when clicking any word) -->
+                <div id="phonemeInspector" class="hidden bg-slate-900 text-slate-100 rounded-xl p-4 border border-slate-800 transition-all">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
+                        <div class="flex items-center gap-2">
+                            <span id="inspectorWordName" class="text-base font-bold text-white font-mono">Word</span>
+                            <span id="inspectorErrorBadge" class="text-[11px] px-2 py-0.5 rounded font-semibold bg-emerald-900 text-emerald-300">None</span>
+                        </div>
+                        <span id="inspectorWordScore" class="text-sm font-bold text-indigo-400 font-mono">Accuracy: --</span>
+                    </div>
+
+                    <div class="text-xs text-slate-400 mb-2 font-medium">Syllable / Phoneme Breakdown:</div>
+                    <div id="phonemeBreakdownContainer" class="flex flex-wrap gap-2">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Azure Credentials Configuration Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 relative animate-in fade-in duration-200">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-2 text-indigo-600">
+                    <i class="ph ph-sliders text-2xl font-bold"></i>
+                    <h3 class="text-lg font-bold text-slate-900">Azure Speech Configuration</h3>
+                </div>
+                <button id="btnCloseSettings" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+
+            <form id="settingsForm" class="mt-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Subscription Key</label>
+                    <input type="password" id="inputApiKey" placeholder="32-character Azure Speech resource key" required class="w-full text-sm font-mono border border-slate-200 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <span class="text-[11px] text-slate-400 mt-1 block">Your API key remains local in your browser session.</span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Service Region</label>
+                    <input type="text" id="inputRegion" placeholder="e.g. eastus, westeurope, southeastasia" required class="w-full text-sm font-mono border border-slate-200 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="checkRemember" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
+                    <label for="checkRemember" class="text-xs text-slate-600 font-medium cursor-pointer">Remember credentials in local storage</label>
+                </div>
+
+                <div class="pt-4 flex justify-end gap-2 border-t border-slate-100">
+                    <button type="button" id="btnCancelSettings" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">Cancel</button>
+                    <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-md shadow-indigo-200">Save Configuration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Help & Troubleshooting Modal -->
+    <div id="helpModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 relative max-h-[85vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <i class="ph ph-info text-indigo-600 text-xl font-bold"></i> Getting Started with Azure Speech
+                </h3>
+                <button id="btnCloseHelp" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+
+            <div class="mt-4 space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <section>
+                    <h4 class="font-bold text-slate-800 text-sm mb-1">1. How to get Azure Speech credentials:</h4>
+                    <p>Go to the <a href="https://portal.azure.com" target="_blank" class="text-indigo-600 underline font-medium">Azure Portal</a>, create a <strong>Speech Service</strong> (Free F0 tier is available), navigate to <strong>Keys and Endpoint</strong>, and copy <strong>KEY 1</strong> and the <strong>Location/Region</strong>.</p>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-slate-800 text-sm mb-1">2. Pronunciation Assessment Details:</h4>
+                    <p>This application implements the <code>SpeechSDK.PronunciationAssessmentConfig</code> engine with <strong>Phoneme</strong> & <strong>Syllable</strong> level granularity, grading fluency, prosody, completeness, and accuracy.</p>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-slate-800 text-sm mb-1">3. Common issues:</h4>
+                    <ul class="list-disc list-inside space-y-1 text-slate-500">
+                        <li><strong>401 Unauthorized:</strong> Double check your Speech Key.</li>
+                        <li><strong>400 / 404 Region mismatch:</strong> Make sure region matches your resource (e.g., <code>eastus</code>, not <code>East US</code>).</li>
+                        <li><strong>Microphone block:</strong> Grant microphone access in browser address bar permissions.</li>
+                    </ul>
+                </section>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button id="btnDismissHelp" class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Overlay -->
+    <div id="toast" class="fixed bottom-5 right-5 max-w-sm bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 transition-opacity duration-300 opacity-0 pointer-events-none z-50">
+        <i id="toastIcon" class="ph ph-info text-lg text-indigo-400"></i>
+        <span id="toastMsg" class="font-medium">Notification message</span>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Preset practice sentences categorized by level
+        const PRACTICE_LIBRARY = {
+            Beginner: [
+                "Hello, it is very nice to meet you today.",
+                "I would like to order a warm cup of coffee.",
+                "The quick brown fox jumps over the lazy dog.",
+                "Could you please show me the way to the library?",
+                "Today is a sunny morning with a gentle breeze."
+            ],
+            Intermediate: [
+                "Consistent pronunciation practice strengthens fluency and conversational confidence.",
+                "Artificial intelligence and speech recognition continue to revolutionize global communication.",
+                "Although the schedule was quite demanding, our dedicated team achieved every single objective.",
+                "Sustainable urban development requires careful balancing of economic prosperity and conservation."
+            ],
+            Advanced: [
+                "Phenomenological investigations into human consciousness frequently reveal profound linguistic subtleties.",
+                "The idiosyncratic characteristics of regional dialects illustrate the organic evolution of vernacular speech.",
+                "Neuroplasticity empowers the cognitive framework to assimilate foreign phonemes well into adulthood."
+            ]
+        };
+
+        // Application State
+        const state = {
+            speechKey: localStorage.getItem('azure_speech_key') || '',
+            speechRegion: localStorage.getItem('azure_speech_region') || '',
+            currentLevel: 'Beginner',
+            isRecording: false,
+            audioContext: null,
+            analyserNode: null,
+            animFrameId: null,
+            recognizer: null,
+            synthesizer: null,
+            currentResultWords: []
+        };
+
+        // DOM Elements
+        const btnOpenSettings = document.getElementById('btnOpenSettings');
+        const settingsModal = document.getElementById('settingsModal');
+        const btnCloseSettings = document.getElementById('btnCloseSettings');
+        const btnCancelSettings = document.getElementById('btnCancelSettings');
+        const settingsForm = document.getElementById('settingsForm');
+        const inputApiKey = document.getElementById('inputApiKey');
+        const inputRegion = document.getElementById('inputRegion');
+        const checkRemember = document.getElementById('checkRemember');
+        const azureStatusBadge = document.getElementById('azureStatusBadge');
+
+        const btnOpenHelp = document.getElementById('btnOpenHelp');
+        const helpModal = document.getElementById('helpModal');
+        const btnCloseHelp = document.getElementById('btnCloseHelp');
+        const btnDismissHelp = document.getElementById('btnDismissHelp');
+
+        const levelTabs = document.querySelectorAll('.level-tab');
+        const levelBadge = document.getElementById('levelBadge');
+        const presetSelect = document.getElementById('presetSelect');
+        const targetText = document.getElementById('targetText');
+        const wordCountBadge = document.getElementById('wordCountBadge');
+
+        const btnPlayTTS = document.getElementById('btnPlayTTS');
+        const btnStopTTS = document.getElementById('btnStopTTS');
+        const ttsVoice = document.getElementById('ttsVoice');
+
+        const btnRecord = document.getElementById('btnRecord');
+        const recordIcon = document.getElementById('recordIcon');
+        const recordLabel = document.getElementById('recordLabel');
+        const micPulseRing = document.getElementById('micPulseRing');
+        const recordingStatus = document.getElementById('recordingStatus');
+        const waveformCanvas = document.getElementById('waveformCanvas');
+        const assessmentHint = document.getElementById('assessmentHint');
+
+        const scorePronunciation = document.getElementById('scorePronunciation');
+        const scoreAccuracy = document.getElementById('scoreAccuracy');
+        const scoreFluency = document.getElementById('scoreFluency');
+        const scoreCompleteness = document.getElementById('scoreCompleteness');
+        const scoreProsody = document.getElementById('scoreProsody');
+        const wordsContainer = document.getElementById('wordsContainer');
+
+        const phonemeInspector = document.getElementById('phonemeInspector');
+        const inspectorWordName = document.getElementById('inspectorWordName');
+        const inspectorErrorBadge = document.getElementById('inspectorErrorBadge');
+        const inspectorWordScore = document.getElementById('inspectorWordScore');
+        const phonemeBreakdownContainer = document.getElementById('phonemeBreakdownContainer');
+
+        // Toast Helper
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = message;
+            if (type === 'error') {
+                toastIcon.className = "ph ph-warning-circle text-lg text-rose-400";
+            } else if (type === 'success') {
+                toastIcon.className = "ph ph-check-circle text-lg text-emerald-400";
+            } else {
+                toastIcon.className = "ph ph-info text-lg text-indigo-400";
+            }
+
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3500);
+        }
+
+        // Initialize UI State
+        function updateAzureStatusBadge() {
+            if (state.speechKey && state.speechRegion) {
+                azureStatusBadge.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+                azureStatusBadge.title = "Azure Speech Configured";
+            } else {
+                azureStatusBadge.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse";
+                azureStatusBadge.title = "Missing Key or Region";
+            }
+        }
+
+        function populatePresets(level) {
+            presetSelect.innerHTML = '';
+            const items = PRACTICE_LIBRARY[level] || [];
+            items.forEach((sentence, idx) => {
+                const opt = document.createElement('option');
+                opt.value = sentence;
+                opt.textContent = `${idx + 1}. ${sentence.length > 55 ? sentence.substring(0, 52) + '...' : sentence}`;
+                presetSelect.appendChild(opt);
+            });
+            if (items.length > 0) {
+                targetText.value = items[0];
+                updateWordCount();
+            }
+        }
+
+        function updateWordCount() {
+            const text = targetText.value.trim();
+            const words = text ? text.split(/\s+/).filter(Boolean) : [];
+            wordCountBadge.textContent = `${words.length} word${words.length === 1 ? '' : 's'}`;
+        }
+
+        // Setup Level Switcher
+        levelTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                levelTabs.forEach(t => t.className = 'level-tab py-2 rounded-lg hover:text-slate-900 transition');
+                tab.className = 'level-tab py-2 rounded-lg bg-white text-indigo-600 shadow-sm transition';
+
+                const level = tab.getAttribute('data-level');
+                state.currentLevel = level;
+                levelBadge.textContent = level;
+                if (level === 'Beginner') levelBadge.className = 'text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800';
+                if (level === 'Intermediate') levelBadge.className = 'text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800';
+                if (level === 'Advanced') levelBadge.className = 'text-xs px-2.5 py-0.5 rounded-full font-semibold bg-rose-100 text-rose-800';
+
+                populatePresets(level);
+            });
+        });
+
+        presetSelect.addEventListener('change', (e) => {
+            targetText.value = e.target.value;
+            updateWordCount();
+        });
+
+        targetText.addEventListener('input', updateWordCount);
+
+        // Settings Modal Handlers
+        btnOpenSettings.addEventListener('click', () => {
+            inputApiKey.value = state.speechKey;
+            inputRegion.value = state.speechRegion;
+            checkRemember.checked = !!localStorage.getItem('azure_speech_key');
+            settingsModal.classList.remove('hidden');
+        });
+
+        function closeSettings() {
+            settingsModal.classList.add('hidden');
+        }
+
+        btnCloseSettings.addEventListener('click', closeSettings);
+        btnCancelSettings.addEventListener('click', closeSettings);
+
+        settingsForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const key = inputApiKey.value.trim();
+            const region = inputRegion.value.trim().toLowerCase();
+
+            if (!key || !region) {
+                showToast("Please enter both Key and Region.", "error");
+                return;
+            }
+
+            state.speechKey = key;
+            state.speechRegion = region;
+
+            if (checkRemember.checked) {
+                localStorage.setItem('azure_speech_key', key);
+                localStorage.setItem('azure_speech_region', region);
+            } else {
+                localStorage.removeItem('azure_speech_key');
+                localStorage.removeItem('azure_speech_region');
+            }
+
+            updateAzureStatusBadge();
+            closeSettings();
+            showToast("Azure configuration saved!", "success");
+        });
+
+        // Help Modal Handlers
+        btnOpenHelp.addEventListener('click', () => helpModal.classList.remove('hidden'));
+        btnCloseHelp.addEventListener('click', () => helpModal.classList.add('hidden'));
+        btnDismissHelp.addEventListener('click', () => helpModal.classList.add('hidden'));
+
+        // Audio Waveform Visualizer
+        function setupVisualizer(stream) {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                state.audioContext = new AudioContext();
+                state.analyserNode = state.audioContext.createAnalyser();
+                state.analyserNode.fftSize = 256;
+
+                const source = state.audioContext.createMediaStreamSource(stream);
+                source.connect(state.analyserNode);
+
+                const canvasCtx = waveformCanvas.getContext('2d');
+                const bufferLength = state.analyserNode.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+
+                function draw() {
+                    state.animFrameId = requestAnimationFrame(draw);
+                    waveformCanvas.width = waveformCanvas.parentElement.clientWidth;
+                    waveformCanvas.height = 48;
+
+                    state.analyserNode.getByteTimeDomainData(dataArray);
+
+                    canvasCtx.fillStyle = '#f8fafc';
+                    canvasCtx.fillRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+
+                    canvasCtx.lineWidth = 2;
+                    canvasCtx.strokeStyle = '#6366f1';
+                    canvasCtx.beginPath();
+
+                    const sliceWidth = waveformCanvas.width * 1.0 / bufferLength;
+                    let x = 0;
+
+                    for (let i = 0; i < bufferLength; i++) {
+                        const v = dataArray[i] / 128.0;
+                        const y = v * (waveformCanvas.height / 2);
+
+                        if (i === 0) {
+                            canvasCtx.moveTo(x, y);
+                        } else {
+                            canvasCtx.lineTo(x, y);
+                        }
+                        x += sliceWidth;
+                    }
+
+                    canvasCtx.lineTo(waveformCanvas.width, waveformCanvas.height / 2);
+                    canvasCtx.stroke();
+                }
+
+                draw();
+            } catch (err) {
+                console.warn("Visualizer init notice:", err);
+            }
+        }
+
+        function stopVisualizer() {
+            if (state.animFrameId) cancelAnimationFrame(state.animFrameId);
+            if (state.audioContext && state.audioContext.state !== 'closed') {
+                state.audioContext.close().catch(() => {});
+            }
+            const canvasCtx = waveformCanvas.getContext('2d');
+            canvasCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+        }
+
+        // Text-to-Speech (Target Pronunciation Playback)
+        btnPlayTTS.addEventListener('click', () => {
+            const text = targetText.value.trim();
+            if (!text) {
+                showToast("Please enter target text to listen to.", "error");
+                return;
+            }
+            if (!state.speechKey || !state.speechRegion) {
+                showToast("Please configure your Azure Speech Key first.", "error");
+                btnOpenSettings.click();
+                return;
+            }
+
+            try {
+                if (state.synthesizer) {
+                    state.synthesizer.close();
+                }
+
+                const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(state.speechKey, state.speechRegion);
+                speechConfig.speechSynthesisVoiceName = ttsVoice.value;
+
+                // Browser audio playback output
+                const player = new SpeechSDK.SpeakerAudioDestination();
+                const audioConfig = SpeechSDK.AudioConfig.fromSpeakerOutput(player);
+
+                state.synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
+                btnPlayTTS.classList.add('opacity-60', 'pointer-events-none');
+                showToast("Synthesizing native speech...", "info");
+
+                state.synthesizer.speakTextAsync(
+                    text,
+                    result => {
+                        btnPlayTTS.classList.remove('opacity-60', 'pointer-events-none');
+                        if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
+                            showToast("Playback completed", "success");
+                        } else {
+                            showToast("Synthesis canceled: " + (result.errorDetails || "Unknown error"), "error");
+                        }
+                        state.synthesizer.close();
+                        state.synthesizer = null;
+                    },
+                    err => {
+                        btnPlayTTS.classList.remove('opacity-60', 'pointer-events-none');
+                        showToast("Error in TTS: " + err, "error");
+                        if (state.synthesizer) state.synthesizer.close();
+                        state.synthesizer = null;
+                    }
+                );
+            } catch (err) {
+                btnPlayTTS.classList.remove('opacity-60', 'pointer-events-none');
+                showToast("Speech SDK Error: " + err.message, "error");
+            }
+        });
+
+        btnStopTTS.addEventListener('click', () => {
+            if (state.synthesizer) {
+                state.synthesizer.close();
+                state.synthesizer = null;
+                btnPlayTTS.classList.remove('opacity-60', 'pointer-events-none');
+                showToast("Playback stopped", "info");
+            }
+        });
+
+        // Pronunciation Assessment Execution
+        btnRecord.addEventListener('click', () => {
+            if (state.isRecording) {
+                stopAssessment();
+            } else {
+                startAssessment();
+            }
+        });
+
+        async function startAssessment() {
+            const prompt = targetText.value.trim();
+            if (!prompt) {
+                showToast("Please enter or select a practice sentence.", "error");
+                return;
+            }
+
+            if (!state.speechKey || !state.speechRegion) {
+                showToast("Azure Key and Region are required to run assessment.", "error");
+                btnOpenSettings.click();
+                return;
+            }
+
+            // Test and acquire microphone stream for visualizer
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                setupVisualizer(stream);
+            } catch (err) {
+                showToast("Microphone access denied: " + err.message, "error");
+                return;
+            }
+
+            try {
+                // Configure Speech Recognition
+                const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(state.speechKey, state.speechRegion);
+                speechConfig.speechRecognitionLanguage = "en-US";
+
+                const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+
+                // Pronunciation Assessment Config
+                const pronConfig = new SpeechSDK.PronunciationAssessmentConfig(
+                    prompt,
+                    SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
+                    SpeechSDK.PronunciationAssessmentGranularity.Phoneme,
+                    true // enable prosody assessment
+                );
+
+                state.recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+                pronConfig.applyTo(state.recognizer);
+
+                // UI Update for Active State
+                setRecordingUI(true);
+
+                assessmentHint.textContent = "Listening... Speak the sentence now. Tap Stop when finished.";
+
+                // Continuous recognition or single-shot evaluation
+                state.recognizer.recognizeOnceAsync(
+                    (result) => {
+                        stopVisualizer();
+                        setRecordingUI(false);
+
+                        if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                            handleAssessmentResult(result);
+                        } else if (result.reason === SpeechSDK.ResultReason.NoMatch) {
+                            showToast("No speech detected. Please try speaking closer to the mic.", "error");
+                            assessmentHint.textContent = "Could not clearly recognize speech. Try again.";
+                        } else if (result.reason === SpeechSDK.ResultReason.Canceled) {
+                            const cancellation = SpeechSDK.CancellationDetails.fromResult(result);
+                            showToast(`Recognition canceled: ${cancellation.errorDetails || cancellation.reason}`, "error");
+                            assessmentHint.textContent = "Azure Speech cancelled or invalid key/region.";
+                        }
+                        if (state.recognizer) {
+                            state.recognizer.close();
+                            state.recognizer = null;
+                        }
+                    },
+                    (err) => {
+                        stopVisualizer();
+                        setRecordingUI(false);
+                        showToast("Assessment failed: " + err, "error");
+                        if (state.recognizer) {
+                            state.recognizer.close();
+                            state.recognizer = null;
+                        }
+                    }
+                );
+
+            } catch (err) {
+                stopVisualizer();
+                setRecordingUI(false);
+                showToast("SDK initialization error: " + err.message, "error");
+            }
+        }
+
+        function stopAssessment() {
+            if (state.recognizer) {
+                showToast("Evaluating your speech with Azure...", "info");
+                assessmentHint.textContent = "Processing phonemes and accuracy...";
+                // Speech SDK recognizeOnceAsync completes automatically when speech ends,
+                // or we close/cancel gracefully:
+                state.recognizer.stopContinuousRecognitionAsync?.();
+            }
+            stopVisualizer();
+            setRecordingUI(false);
+        }
+
+        function setRecordingUI(active) {
+            state.isRecording = active;
+            if (active) {
+                btnRecord.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'shadow-indigo-300');
+                btnRecord.classList.add('bg-rose-600', 'hover:bg-rose-700', 'shadow-rose-300');
+                recordIcon.className = "ph-bold ph-stop text-3xl";
+                recordLabel.textContent = "Stop";
+                micPulseRing.classList.remove('hidden');
+
+                recordingStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> Recording...';
+                recordingStatus.className = "inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-50 text-rose-700";
+            } else {
+                btnRecord.classList.remove('bg-rose-600', 'hover:bg-rose-700', 'shadow-rose-300');
+                btnRecord.classList.add('bg-indigo-600', 'hover:bg-indigo-700', 'shadow-indigo-300');
+                recordIcon.className = "ph ph-microphone text-3xl";
+                recordLabel.textContent = "Start";
+                micPulseRing.classList.add('hidden');
+
+                recordingStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> Idle';
+                recordingStatus.className = "inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600";
+            }
+        }
+
+        // Process Azure Assessment Results
+        function handleAssessmentResult(result) {
+            try {
+                // Extract Pronunciation Assessment Object
+                const pronResult = SpeechSDK.PronunciationAssessmentResult.fromResult(result);
+                
+                // Detailed JSON structure for words & phonemes
+                const jsonDetails = JSON.parse(result.properties.getProperty(SpeechSDK.PropertyId.SpeechServiceResponse_JsonResult));
+                const nbest = jsonDetails.NBest && jsonDetails.NBest[0];
+
+                if (!nbest) {
+                    showToast("No scoring data returned from service.", "error");
+                    return;
+                }
+
+                // Overall scores
+                const pronScore = Math.round(pronResult.pronunciationScore || 0);
+                const accScore = Math.round(pronResult.accuracyScore || 0);
+                const fluScore = Math.round(pronResult.fluencyScore || 0);
+                const compScore = Math.round(pronResult.completenessScore || 0);
+                const prosScore = Math.round(pronResult.prosodyScore || 0);
+
+                scorePronunciation.textContent = pronScore;
+                scoreAccuracy.textContent = accScore;
+                scoreFluency.textContent = fluScore;
+                scoreCompleteness.textContent = compScore;
+                scoreProsody.textContent = prosScore;
+
+                assessmentHint.textContent = `Completed! Overall score: ${pronScore}/100. Click words below for phonemic details.`;
+                showToast("Pronunciation analysis complete!", "success");
+
+                // Render Words
+                renderWordBreakdown(nbest.Words || []);
+
+            } catch (err) {
+                console.error("Result parsing failed", err);
+                showToast("Error parsing assessment data.", "error");
+            }
+        }
+
+        // Render Word-by-Word Analysis Chips
+        function renderWordBreakdown(words) {
+            state.currentResultWords = words;
+            wordsContainer.innerHTML = '';
+            phonemeInspector.classList.add('hidden');
+
+            if (!words || words.length === 0) {
+                wordsContainer.innerHTML = '<p class="text-xs text-slate-400 italic">No recognized word tokens.</p>';
+                return;
+            }
+
+            words.forEach((w, index) => {
+                const wordText = w.Word;
+                const score = w.PronunciationAssessment ? Math.round(w.PronunciationAssessment.AccuracyScore) : 0;
+                const errorType = w.PronunciationAssessment ? w.PronunciationAssessment.ErrorType : "None";
+
+                const chip = document.createElement('button');
+                chip.type = 'button';
+
+                // Color coding based on error and accuracy
+                let colorClass = 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100';
+                if (errorType === 'Omission' || score < 60) {
+                    colorClass = 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100';
+                } else if (errorType === 'Mispronunciation' || score < 80) {
+                    colorClass = 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100';
+                }
+
+                chip.className = `px-3 py-1.5 rounded-xl border text-sm font-semibold transition-transform transform active:scale-95 flex items-center gap-1.5 ${colorClass}`;
+                chip.innerHTML = `
+                    <span>${wordText}</span>
+                    <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-md bg-white/70 shadow-2xs">${score}</span>
+                `;
+
+                chip.addEventListener('click', () => {
+                    inspectWord(w);
+                });
+
+                wordsContainer.appendChild(chip);
+            });
+        }
+
+        // Display Detailed Phonemes / Syllables in Inspector
+        function inspectWord(wordData) {
+            phonemeInspector.classList.remove('hidden');
+            inspectorWordName.textContent = `"${wordData.Word}"`;
+
+            const pron = wordData.PronunciationAssessment || {};
+            const score = Math.round(pron.AccuracyScore || 0);
+            const errType = pron.ErrorType || 'None';
+
+            inspectorWordScore.textContent = `Accuracy: ${score}/100`;
+            inspectorErrorBadge.textContent = errType === 'None' ? 'Correct' : errType;
+
+            if (errType === 'None') {
+                inspectorErrorBadge.className = 'text-[11px] px-2 py-0.5 rounded font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800';
+            } else if (errType === 'Omission') {
+                inspectorErrorBadge.className = 'text-[11px] px-2 py-0.5 rounded font-semibold bg-rose-950 text-rose-300 border border-rose-800';
+            } else {
+                inspectorErrorBadge.className = 'text-[11px] px-2 py-0.5 rounded font-semibold bg-amber-950 text-amber-300 border border-amber-800';
+            }
+
+            phonemeBreakdownContainer.innerHTML = '';
+
+            const phonemes = wordData.Phonemes || [];
+            const syllables = wordData.Syllables || [];
+
+            if (phonemes.length === 0 && syllables.length === 0) {
+                phonemeBreakdownContainer.innerHTML = `<span class="text-xs text-slate-500 italic">No sub-syllable phoneme tags provided for this token.</span>`;
+                return;
+            }
+
+            // Display Syllables if present
+            if (syllables.length > 0) {
+                syllables.forEach(s => {
+                    const sylChip = document.createElement('div');
+                    const sylScore = s.PronunciationAssessment ? Math.round(s.PronunciationAssessment.AccuracyScore) : '--';
+                    sylChip.className = "bg-slate-800 text-slate-200 border border-slate-700 px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5";
+                    sylChip.innerHTML = `<span class="font-mono text-indigo-300">${s.Syllable}</span> <span class="text-[10px] text-slate-400 font-mono">${sylScore}</span>`;
+                    phonemeBreakdownContainer.appendChild(sylChip);
+                });
+            } else {
+                // Display individual Phonemes
+                phonemes.forEach(p => {
+                    const pScore = p.PronunciationAssessment ? Math.round(p.PronunciationAssessment.AccuracyScore) : 0;
+                    let pColor = 'text-emerald-400';
+                    if (pScore < 60) pColor = 'text-rose-400';
+                    else if (pScore < 80) pColor = 'text-amber-400';
+
+                    const pChip = document.createElement('div');
+                    pChip.className = "bg-slate-800 border border-slate-700 px-2 py-1 rounded-md text-xs font-mono flex items-center gap-1.5";
+                    pChip.innerHTML = `<span>/${p.Phoneme}/</span> <span class="${pColor} text-[10px] font-bold">${pScore}</span>`;
+                    phonemeBreakdownContainer.appendChild(pChip);
+                });
+            }
+        }
+
+        // Initialize defaults
+        window.addEventListener('DOMContentLoaded', () => {
+            updateAzureStatusBadge();
+            populatePresets('Beginner');
+        });
+    </script>
+</body>
+</html>
